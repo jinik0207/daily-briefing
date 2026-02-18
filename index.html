@@ -28,6 +28,38 @@
     }
     header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
     header p { color: var(--muted); font-size: 0.875rem; margin-top: 0.25rem; }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem 0 0;
+    }
+    nav button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    nav button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .monthly-badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
     main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
     .briefing { border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background: #fff; }
     .briefing-date {
@@ -116,16 +148,37 @@
   <header>
     <h1>📰 데일리 브리핑</h1>
     <p>매일 아침 8시, 글로벌 경제·기술·과학 뉴스</p>
+    <nav>
+      <button class="active" onclick="showTab('daily', this)">📅 Daily</button>
+      <button onclick="showTab('monthly', this)">📊 Monthly</button>
+    </nav>
   </header>
-  <main id="briefings">
-    <!-- 브리핑이 여기에 자동으로 추가됩니다 -->
-    <p style="color:#6b7280;text-align:center;padding:3rem 0;">브리핑을 불러오는 중...</p>
+  <main>
+    <div id="tab-daily">
+      <div id="briefings">
+        <p style="color:#6b7280;text-align:center;padding:3rem 0;">브리핑을 불러오는 중...</p>
+      </div>
+    </div>
+    <div id="tab-monthly" style="display:none">
+      <div id="monthly-list">
+        <p style="color:#6b7280;text-align:center;padding:3rem 0;">월간 리포트를 불러오는 중...</p>
+      </div>
+    </div>
   </main>
   <footer>
     Powered by Jini · jinik0207.github.io/daily-briefing
   </footer>
   <script>
-    fetch('briefings.json')
+    function showTab(tab, btn) {
+      document.getElementById('tab-daily').style.display = tab === 'daily' ? '' : 'none';
+      document.getElementById('tab-monthly').style.display = tab === 'monthly' ? '' : 'none';
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (tab === 'monthly') loadMonthly();
+    }
+
+    // Daily 브리핑 로드
+    fetch('briefings.json?v=' + Date.now())
       .then(r => r.json())
       .then(data => {
         const container = document.getElementById('briefings');
@@ -144,6 +197,39 @@
         document.getElementById('briefings').innerHTML =
           '<p style="color:#6b7280;text-align:center;padding:3rem 0;">브리핑을 불러올 수 없습니다.</p>';
       });
+
+    // Monthly 리포트 로드
+    let monthlyLoaded = false;
+    function loadMonthly() {
+      if (monthlyLoaded) return;
+      monthlyLoaded = true;
+      fetch('monthly/index.json?v=' + Date.now())
+        .then(r => r.json())
+        .then(months => {
+          if (!months.length) {
+            document.getElementById('monthly-list').innerHTML =
+              '<p style="color:#6b7280;text-align:center;padding:3rem 0;">아직 월간 리포트가 없습니다.</p>';
+            return;
+          }
+          return Promise.all(months.map(m =>
+            fetch(`monthly/${m}.json?v=` + Date.now()).then(r => r.json())
+          ));
+        })
+        .then(reports => {
+          if (!reports) return;
+          document.getElementById('monthly-list').innerHTML = reports.map(r => `
+            <article class="briefing">
+              <div class="monthly-badge">MONTHLY REPORT</div>
+              <div class="briefing-date">${r.month}</div>
+              <div class="briefing-content">${r.html}</div>
+            </article>
+          `).join('');
+        })
+        .catch(() => {
+          document.getElementById('monthly-list').innerHTML =
+            '<p style="color:#6b7280;text-align:center;padding:3rem 0;">월간 리포트가 없습니다.</p>';
+        });
+    }
   </script>
 </body>
 </html>
