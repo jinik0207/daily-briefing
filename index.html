@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>데일리 브리핑</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --accent: #2563eb;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --tag-bg: #f3f4f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 0;
+      text-align: center;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p { color: var(--muted); font-size: 0.875rem; margin-top: 0.25rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .briefing { border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background: #fff; }
+    .briefing-date {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+    .briefing h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+    .section { margin-bottom: 1.25rem; }
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-item { margin-bottom: 0.75rem; padding-left: 0.75rem; border-left: 2px solid var(--border); }
+    .news-item p { font-size: 0.9rem; }
+    .news-item .source { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .news-item .source a { color: var(--accent); text-decoration: none; }
+    .news-item .source a:hover { text-decoration: underline; }
+    .point {
+      background: #eff6ff;
+      border-left: 3px solid var(--accent);
+      padding: 0.75rem 1rem;
+      border-radius: 0 4px 4px 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      main { padding: 1rem; }
+      .briefing { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📰 데일리 브리핑</h1>
+    <p>매일 아침 8시, 글로벌 경제·기술·과학 뉴스</p>
+  </header>
+  <main id="briefings">
+    <!-- 브리핑이 여기에 자동으로 추가됩니다 -->
+    <p style="color:#6b7280;text-align:center;padding:3rem 0;">브리핑을 불러오는 중...</p>
+  </main>
+  <footer>
+    Powered by Jini · jinik0207.github.io/daily-briefing
+  </footer>
+  <script>
+    fetch('briefings.json')
+      .then(r => r.json())
+      .then(data => {
+        const container = document.getElementById('briefings');
+        if (!data.length) {
+          container.innerHTML = '<p style="color:#6b7280;text-align:center;padding:3rem 0;">아직 브리핑이 없습니다.</p>';
+          return;
+        }
+        container.innerHTML = data.map(b => `
+          <article class="briefing">
+            <div class="briefing-date">${b.date}</div>
+            <div class="briefing-content">${b.html}</div>
+          </article>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('briefings').innerHTML =
+          '<p style="color:#6b7280;text-align:center;padding:3rem 0;">브리핑을 불러올 수 없습니다.</p>';
+      });
+  </script>
+</body>
+</html>
